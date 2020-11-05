@@ -1,5 +1,6 @@
 package com.talentpath.tictactoe.daos;
 
+import com.talentpath.tictactoe.exceptions.InvalidIdException;
 import com.talentpath.tictactoe.models.TicGame;
 import com.talentpath.tictactoe.models.TicMove;
 import org.springframework.context.annotation.Profile;
@@ -84,6 +85,20 @@ public class InMemTicDao implements TicDao{
         TicGame toGrabFrom = games.stream().filter( g -> g.getGameId() == gameId ).findAny().orElse(null);
         if( toGrabFrom != null ) return toGrabFrom.getPastMoves();
         return null;
+    }
+
+    //adding a game to the database
+    @Override
+    public TicGame addGame(TicGame toAdd){
+        //make a copy of the original game
+        //find whatever the next number is in the index of games and or 0 if there is none
+        //and set that as the game id
+        //add the game to games arraylist
+        TicGame copy = new TicGame(toAdd);
+        copy.setGameId( games.stream().mapToInt( game -> game.getGameId() ).max().orElse(0) + 1 );
+        games.add(copy);
+
+        return new TicGame(copy);
     }
 
 }

@@ -1,9 +1,11 @@
 package com.talentpath.tictactoe.daos;
 
+import com.talentpath.tictactoe.exceptions.InvalidIdException;
 import com.talentpath.tictactoe.models.TicGame;
 import com.talentpath.tictactoe.models.TicMove;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
@@ -23,7 +25,7 @@ public class PostgresTicDao implements TicDao{
     @Autowired
     private JdbcTemplate template;
 
-    //clearing all of the previous games when we start the server
+    //clearing all of the previous games when we start the server and adding two games for db testing
     @Override
     public void reset() {
         template.update("TRUNCATE \"PastMoves\", \"Games\"  RESTART IDENTITY");
@@ -37,17 +39,24 @@ public class PostgresTicDao implements TicDao{
 
     //return one game by id
     @Override
-    public TicGame getGameById(int gameId) {
+    public TicGame getGameById(int gameId) throws InvalidIdException {
         //selecting a matching game, get the info and then use gamemapper to create a new game for those
         //properties from the original game
-        return template.queryForObject("SELECT * FROM \"Games\" WHERE \"gameId\" = '" + gameId + "'",
-                new GameMapper());
+        try {
+            return template.queryForObject("SELECT * FROM \"Games\" WHERE \"gameId\" = '" + gameId + "'",
+                    new GameMapper());
+        } catch (DataAccessException ex){
+            throw new InvalidIdException("Error retrieving game id: " + gameId, ex);
+        }
     }
 
     //getting a ticmove list of all of the previous moves including both the space and the player
     @Override
     public List<TicMove> getPastMoves(Integer gameId) {
         //string lists of the moves and players
+        List<Integer> gameIds = template.query(
+                "SELECT \"gameId\" FROM public.\"PastMoves\"",
+                new IdMapper());
         List<String> moves = template.query(
                 "SELECT \"move\" FROM \"PastMoves\" WHERE \"gameId\" = '"+gameId+"' ",
                 new MoveMapper());
@@ -59,6 +68,7 @@ public class PostgresTicDao implements TicDao{
         List<TicMove> toReturn = new ArrayList<>();
         for ( int i = 0 ; i < moves.size() ; i++) {
             TicMove turn = new TicMove();
+            turn.setGameId(gameId);
             turn.setChoice(moves.get(i));
             turn.setPlayer(players.get(i));
             toReturn.add(turn);
@@ -66,6 +76,27 @@ public class PostgresTicDao implements TicDao{
 
         return toReturn;
 
+    }
+
+    //making the SQL command to inject the information into the Games SQL table
+    //not going to make it absolutely necessary to have any moves to win so i can make a give up
+    //option with no restrictions
+    @Override
+    public TicGame addGame(TicGame game) {
+
+        List<Integer> insertedId = template.query("INSERT INTO \"Games\" (\"winner\") " +
+                        "VALUES ('"+game.getWinner()+"') returning \"gameId\";", new IdMapper() );
+
+        game.setGameId(insertedId.get(0));
+
+        List<TicMove> pastMoves = game.getPastMoves();
+        for ( int i = 0 ; i < pastMoves.size() ; i++) {
+            int rowsAffected = template.update(
+                    "INSERT INTO \"PastMoves\" (\"gameId\", \"move\", \"player\") VALUES ("
+                            + game.getGameId() + ", '" + pastMoves.get(i).getChoice() +"', '"+ pastMoves.get(i).getPlayer()+"')");
+        }
+
+        return game;
     }
 
     class GameMapper implements RowMapper<TicGame> {
@@ -94,6 +125,17 @@ public class PostgresTicDao implements TicDao{
         @Override
         public String mapRow(ResultSet resultSet, int i) throws SQLException {
             return resultSet.getString( "player");
+        }
+    }
+
+    //retrieving the id of the game toAdd in the addGame method
+    //necessary to be able to use the template.update query... there should only be one
+    //(ie the get(0))
+    class IdMapper implements  RowMapper<Integer> {
+
+        @Override
+        public Integer mapRow(ResultSet resultSet, int i) throws SQLException {
+            return resultSet.getInt("gameId");
         }
     }
 

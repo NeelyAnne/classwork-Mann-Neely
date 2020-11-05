@@ -6,6 +6,8 @@ public class TicMove {
     String choice;
     String player;
 
+    public TicMove() {};
+
     public Integer getGameId() {
         return gameId;
     }

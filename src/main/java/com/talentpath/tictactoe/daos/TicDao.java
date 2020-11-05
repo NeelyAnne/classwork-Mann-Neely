@@ -1,5 +1,6 @@
 package com.talentpath.tictactoe.daos;
 
+import com.talentpath.tictactoe.exceptions.InvalidIdException;
 import com.talentpath.tictactoe.models.TicGame;
 import com.talentpath.tictactoe.models.TicMove;
 
@@ -16,9 +17,13 @@ public interface TicDao {
     List<TicGame> getAllGames();
 
     //return a single game based on id
-    TicGame getGameById(int gameId);
+    TicGame getGameById(int gameId) throws InvalidIdException;
 
-    //retreives list of all of the past moves in a TicMove object
+    //retrieves list of all of the past moves in a TicMove object
     List<TicMove> getPastMoves(Integer gameId);
+
+    //adding a game to the db with no PastMoves (mainly for testing purposes)
+    TicGame addGame(TicGame toAdd);
+
 
 }
