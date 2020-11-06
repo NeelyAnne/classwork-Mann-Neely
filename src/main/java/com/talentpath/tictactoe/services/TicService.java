@@ -49,7 +49,6 @@ public class TicService {
     public Integer beginGame() {
 
         TicGame toAdd = new TicGame();
-        toAdd.setPastMoves( new ArrayList<>());
 
         toAdd = dao.addGame( toAdd );
 

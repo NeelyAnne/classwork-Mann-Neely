@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tic Tac Toe</title>
+    <link rel="stylesheet" href="styling.css" />
+  </head>
+  <body>
+    <button onclick="(beginGame())">Start New Game</button>
+    <button onclick="(loadGame(1))">Load Game One</button>
+    <button onclick="(loadAllGames())" id="loadAll">Load All Games</button>
+
+    <div class="container">
+      <div id="mainBoard">
+        <div id="gameId" >
+          <p>Game ID:<p id="insertGameId"></p></p>
+        </div>
+        <div id="spaces" >
+          <div id="A1">-</div>
+          <div id="A2">-</div>
+          <div id="A3">-</div>
+          <div id="B1">-</div>
+          <div id="B2">-</div>
+          <div id="B3">-</div>
+          <div id="C1">-</div>
+          <div id="C2">-</div>
+          <div id="C3">-</div>
+        </div>
+      </div>
+    </div>
+
+    <script
+      src="https://code.jquery.com/jquery-3.5.1.min.js"
+      integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
+      crossorigin="anonymous"
+    ></script>
+    <script src="home.js"></script>
+  </body>
+</html>

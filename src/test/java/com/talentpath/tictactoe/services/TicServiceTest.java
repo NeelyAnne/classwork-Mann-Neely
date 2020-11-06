@@ -1,6 +1,7 @@
 package com.talentpath.tictactoe.services;
 
 import com.talentpath.tictactoe.daos.TicDao;
+import com.talentpath.tictactoe.exceptions.InvalidIdException;
 import com.talentpath.tictactoe.models.TicGame;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,12 +62,20 @@ public class TicServiceTest {
     //retrieving a single game by id
     @Test
     void getGameById() {
-
+        try {
             TicGame game = service.getGameById(1);
 
-            assertEquals( 1, game.getGameId() );
-            assertEquals( "X", game.getWinner() );
+            assertEquals(1, game.getGameId());
+            assertEquals("X", game.getWinner());
             assertEquals("A1", game.getPastMoves().get(0).getChoice());
+        } catch (InvalidIdException e) {
+            fail("Failed to get game by id due to an invalid id");
+        }
+
+    }
+
+    @Test
+    void beginGame() {
 
     }
 

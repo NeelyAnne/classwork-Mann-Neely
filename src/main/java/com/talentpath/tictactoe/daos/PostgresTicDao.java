@@ -46,7 +46,7 @@ public class PostgresTicDao implements TicDao{
             return template.queryForObject("SELECT * FROM \"Games\" WHERE \"gameId\" = '" + gameId + "'",
                     new GameMapper());
         } catch (DataAccessException ex){
-            throw new InvalidIdException("Error retrieving game id: " + gameId, ex);
+            throw new InvalidIdException("There doesn't seem to be a game number " + gameId, ex);
         }
     }
 
@@ -83,19 +83,29 @@ public class PostgresTicDao implements TicDao{
     //option with no restrictions
     @Override
     public TicGame addGame(TicGame game) {
-
-        List<Integer> insertedId = template.query("INSERT INTO \"Games\" (\"winner\") " +
-                        "VALUES ('"+game.getWinner()+"') returning \"gameId\";", new IdMapper() );
-
-        game.setGameId(insertedId.get(0));
-
-        List<TicMove> pastMoves = game.getPastMoves();
-        for ( int i = 0 ; i < pastMoves.size() ; i++) {
-            int rowsAffected = template.update(
-                    "INSERT INTO \"PastMoves\" (\"gameId\", \"move\", \"player\") VALUES ("
-                            + game.getGameId() + ", '" + pastMoves.get(i).getChoice() +"', '"+ pastMoves.get(i).getPlayer()+"')");
+        //checking to see if there are any previous games
+        List<Integer> insertedId = new ArrayList<>();
+        insertedId = template.query("SELECT \"gameId\" FROM public.\"Games\";", new IdMapper());
+        if (insertedId.size() == 0) {
+            game.setGameId(1);
+        } else {
+            game.setGameId(insertedId.size()+1);
         }
 
+        //checking to see if the game to be inserted has any past moves that should be inserted with it.
+        //for testing purposes
+        List<TicMove> pastMoves = game.getPastMoves();
+        if (game.getPastMoves() != null) {
+            for (int i = 0; i < pastMoves.size(); i++) {
+                int rowsAffected = template.update(
+                        "INSERT INTO \"PastMoves\" (\"gameId\", \"move\", \"player\") VALUES ("
+                                + game.getGameId() + ", '" + pastMoves.get(i).getChoice() + "', '" + pastMoves.get(i).getPlayer() + "')");
+            }
+        } else if (game.getWinner() != null) {
+            template.update("INSERT INTO public.\"Games\" (\"winner\") VALUES ('"+ game.getWinner()+"')");
+        } else {
+            template.update("INSERT INTO public.\"Games\" (\"winner\") VALUES ('')");
+        }
         return game;
     }
 

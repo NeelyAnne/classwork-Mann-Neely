@@ -34,10 +34,10 @@ public class TicGame {
     }
 
     public String getWinner() {
-        return winner.toUpperCase();
+        return winner;
     }
 
     public void setWinner(String winner) {
-        this.winner = winner.toUpperCase();
+        this.winner = winner;
     }
 }

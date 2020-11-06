@@ -1,5 +1,6 @@
 package com.talentpath.tictactoe.daos;
 
+import com.talentpath.tictactoe.exceptions.InvalidIdException;
 import com.talentpath.tictactoe.models.TicGame;
 import com.talentpath.tictactoe.models.TicMove;
 import com.talentpath.tictactoe.services.TicService;
@@ -103,11 +104,14 @@ public class PostgresTicDaoTest {
     //retrieve a single game by the gameId
     @Test
     void getGameById() {
+        try {
+            TicGame game = dao.getGameById(1);
 
-        TicGame game = dao.getGameById(1);
-
-        assertEquals(1, game.getGameId());
-        assertEquals("X", game.getWinner());
+            assertEquals(1, game.getGameId());
+            assertEquals("X", game.getWinner());
+        } catch (InvalidIdException e) {
+            fail("Failed to get game by id due to an invalid id");
+        }
 
     }
 

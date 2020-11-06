@@ -29,7 +29,7 @@ public class TicController {
     }
 
     //return the gameId int for the new game
-    @PostMapping("/Start")
+    @PostMapping("/begin")
     public Integer beginGame() {
         return service.beginGame();
     }
